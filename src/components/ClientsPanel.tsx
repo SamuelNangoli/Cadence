@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CalendarClock, Link as LinkIcon, Plus, Repeat, Trash2, Users } from "lucide-react";
 import { PLATFORM_ORDER, PLATFORMS, type Platform } from "@/lib/platforms";
 import { PlatformIcon } from "./icons";
@@ -22,6 +22,9 @@ export function ClientsPanel() {
   const [platforms, setPlatforms] = useState<Platform[]>(["instagram"]);
   const [formError, setFormError] = useState<string | null>(null);
   const [savingBrand, setSavingBrand] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [applied, setApplied] = useState<Record<string, number>>({});
 
@@ -40,6 +43,21 @@ export function ClientsPanel() {
     setPlatforms(["instagram"]);
     setFormError(null);
     setAdding(true);
+    // The form sits at the bottom of a long scrollable list — bring the whole
+    // thing (including its buttons) into view, or the user never sees it.
+    requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+      nameRef.current?.focus();
+    });
+  }
+
+  /** Show a validation reason and make sure it is actually on screen. */
+  function failWith(message: string, focus?: HTMLElement | null) {
+    setFormError(message);
+    requestAnimationFrame(() => {
+      (focus ?? errorRef.current)?.scrollIntoView({ block: "center", behavior: "smooth" });
+      focus?.focus();
+    });
   }
 
   function closeAddForm() {
@@ -54,11 +72,11 @@ export function ClientsPanel() {
     // Validate here rather than disabling the button: a dead button gives the
     // user no idea what's missing.
     if (!name.trim()) {
-      setFormError("Give the client a name.");
+      failWith("Give the client a name.", nameRef.current);
       return;
     }
     if (platforms.length === 0) {
-      setFormError("Pick at least one channel.");
+      failWith("Pick at least one channel — tap Instagram, TikTok, X, LinkedIn, Facebook, or YouTube above.");
       return;
     }
 
@@ -68,7 +86,7 @@ export function ClientsPanel() {
       await createBrand({ name: name.trim(), industry, accentColor: accent, platforms });
       closeAddForm();
     } catch {
-      setFormError("Couldn't add the client — please try again.");
+      failWith("Couldn't add the client — please try again.");
     } finally {
       setSavingBrand(false);
     }
@@ -221,16 +239,16 @@ export function ClientsPanel() {
 
         {/* add client */}
         {adding ? (
-          <form onSubmit={submitBrand} className="fade-up space-y-2.5 rounded-xl border-2 border-dashed border-[var(--accent)]/40 p-3">
+          <form ref={formRef} onSubmit={submitBrand} className="fade-up space-y-2.5 rounded-xl border-2 border-dashed border-[var(--accent)]/40 p-3">
             <div className="flex gap-2">
               <Input
+                ref={nameRef}
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
                   if (formError) setFormError(null);
                 }}
                 placeholder="Client name"
-                autoFocus
               />
               <Input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="Industry" />
             </div>
@@ -271,7 +289,7 @@ export function ClientsPanel() {
               })}
             </div>
             {formError && (
-              <p role="alert" className="rounded-md bg-red-500/10 px-2.5 py-1.5 text-[11px] font-medium text-red-600 dark:text-red-400">
+              <p ref={errorRef} role="alert" className="rounded-md bg-red-500/10 px-2.5 py-1.5 text-[11px] font-medium text-red-600 dark:text-red-400">
                 {formError}
               </p>
             )}
