@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# local database (recreate with: npx prisma db push && npx tsx prisma/seed.ts)
+*.db
+*.db-journal
 
 # vercel
 .vercel

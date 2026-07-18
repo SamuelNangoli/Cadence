@@ -1,0 +1,126 @@
+// Cadence data model — multi-tenant workspace/brand structure.
+// Local dev uses SQLite (no Docker on this machine); switch provider to
+// "postgresql" + a Supabase DATABASE_URL for production. Status/platform
+// enums are strings so the schema is portable across both providers.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  brands    Brand[]
+}
+
+model Brand {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  handle      String
+  industry    String
+  description String   @default("")
+  // per-client accent color (hex) used for calendar color-coding
+  accentColor String
+  createdAt   DateTime @default(now())
+
+  channels       Channel[]
+  posts          Post[]
+  recurringSlots RecurringSlot[]
+  shareLinks     ShareLink[]
+
+  @@index([workspaceId])
+}
+
+model Channel {
+  id        String  @id @default(cuid())
+  brandId   String
+  brand     Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  // instagram | linkedin | x | tiktok | facebook | youtube
+  platform  String
+  handle    String
+  connected Boolean @default(true)
+
+  @@unique([brandId, platform])
+  @@index([brandId])
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  brandId     String
+  brand       Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  title       String
+  // image | video | carousel | text | reel | story | short
+  contentType String    @default("image")
+  // idea | draft | needs_approval | approved | scheduled | published
+  status      String    @default("draft")
+  scheduledAt DateTime?
+  // emoji rendered on the media placeholder tile
+  mediaEmoji  String    @default("")
+  // client approval: none | pending | approved | changes_requested
+  approvalState String  @default("none")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  variants PostVariant[]
+  comments Comment[]
+
+  @@index([brandId, scheduledAt])
+  @@index([status])
+}
+
+model PostVariant {
+  id       String @id @default(cuid())
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  platform String
+  copy     String @default("")
+
+  @@unique([postId, platform])
+  @@index([postId])
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author     String
+  // team | client
+  authorType String   @default("team")
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([postId])
+}
+
+model ShareLink {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  brandId   String
+  brand     Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([brandId])
+}
+
+model RecurringSlot {
+  id          String @id @default(cuid())
+  brandId     String
+  brand       Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  // 0 = Sunday … 6 = Saturday
+  weekday     Int
+  hour        Int
+  minute      Int    @default(0)
+  label       String
+  platform    String
+  contentType String @default("image")
+
+  @@index([brandId])
+}
