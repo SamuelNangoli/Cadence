@@ -20,6 +20,8 @@ export function ClientsPanel() {
   const [industry, setIndustry] = useState("");
   const [accent, setAccent] = useState(ACCENTS[4]);
   const [platforms, setPlatforms] = useState<Platform[]>(["instagram"]);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [savingBrand, setSavingBrand] = useState(false);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [applied, setApplied] = useState<Record<string, number>>({});
 
@@ -30,13 +32,46 @@ export function ClientsPanel() {
   const [slotLabel, setSlotLabel] = useState("");
   const [slotPlatform, setSlotPlatform] = useState<Platform>("instagram");
 
-  async function submitBrand(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim() || platforms.length === 0) return;
-    await createBrand({ name: name.trim(), industry, accentColor: accent, platforms });
+  /** Reset every field so the form never opens carrying stale state. */
+  function openAddForm() {
     setName("");
     setIndustry("");
+    setAccent(ACCENTS[4]);
+    setPlatforms(["instagram"]);
+    setFormError(null);
+    setAdding(true);
+  }
+
+  function closeAddForm() {
     setAdding(false);
+    setFormError(null);
+  }
+
+  async function submitBrand(e: React.FormEvent) {
+    e.preventDefault();
+    if (savingBrand) return;
+
+    // Validate here rather than disabling the button: a dead button gives the
+    // user no idea what's missing.
+    if (!name.trim()) {
+      setFormError("Give the client a name.");
+      return;
+    }
+    if (platforms.length === 0) {
+      setFormError("Pick at least one channel.");
+      return;
+    }
+
+    setFormError(null);
+    setSavingBrand(true);
+    try {
+      await createBrand({ name: name.trim(), industry, accentColor: accent, platforms });
+      closeAddForm();
+    } catch {
+      setFormError("Couldn't add the client — please try again.");
+    } finally {
+      setSavingBrand(false);
+    }
   }
 
   return (
@@ -188,7 +223,15 @@ export function ClientsPanel() {
         {adding ? (
           <form onSubmit={submitBrand} className="fade-up space-y-2.5 rounded-xl border-2 border-dashed border-[var(--accent)]/40 p-3">
             <div className="flex gap-2">
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Client name" autoFocus />
+              <Input
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (formError) setFormError(null);
+                }}
+                placeholder="Client name"
+                autoFocus
+              />
               <Input value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="Industry" />
             </div>
             <div className="flex items-center gap-1.5">
@@ -212,7 +255,10 @@ export function ClientsPanel() {
                   <button
                     type="button"
                     key={p}
-                    onClick={() => setPlatforms(on ? platforms.filter((x) => x !== p) : [...platforms, p])}
+                    onClick={() => {
+                      setPlatforms(on ? platforms.filter((x) => x !== p) : [...platforms, p]);
+                      if (formError) setFormError(null);
+                    }}
                     className={cn(
                       "flex cursor-pointer items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium",
                       on ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]" : "border-[var(--border)] text-[var(--muted)]"
@@ -224,17 +270,22 @@ export function ClientsPanel() {
                 );
               })}
             </div>
+            {formError && (
+              <p role="alert" className="rounded-md bg-red-500/10 px-2.5 py-1.5 text-[11px] font-medium text-red-600 dark:text-red-400">
+                {formError}
+              </p>
+            )}
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setAdding(false)}>
+              <Button type="button" variant="ghost" onClick={closeAddForm}>
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" disabled={!name.trim() || platforms.length === 0}>
-                Add client
+              <Button type="submit" variant="primary" disabled={savingBrand}>
+                {savingBrand ? "Adding…" : "Add client"}
               </Button>
             </div>
           </form>
         ) : (
-          <Button onClick={() => setAdding(true)} className="w-full border-dashed">
+          <Button onClick={openAddForm} className="w-full border-dashed">
             <Plus size={14} /> Add a client
           </Button>
         )}
