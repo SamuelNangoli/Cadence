@@ -6,7 +6,7 @@ import { PLATFORM_ORDER, PLATFORMS, type Platform } from "@/lib/platforms";
 import { PlatformIcon } from "./icons";
 import { Button, Input, Modal, Select } from "./ui";
 import { cn } from "@/lib/utils";
-import { useData, useUI } from "@/lib/store";
+import { describeError, useData, useUI } from "@/lib/store";
 
 const ACCENTS = ["#16a34a", "#ea580c", "#db2777", "#b45309", "#4f46e5", "#0891b2", "#7c3aed", "#dc2626"];
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -85,8 +85,8 @@ export function ClientsPanel() {
     try {
       await createBrand({ name: name.trim(), industry, accentColor: accent, platforms });
       closeAddForm();
-    } catch {
-      failWith("Couldn't add the client — please try again.");
+    } catch (err) {
+      failWith(describeError(err));
     } finally {
       setSavingBrand(false);
     }

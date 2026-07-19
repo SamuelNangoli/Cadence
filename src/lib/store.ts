@@ -102,8 +102,29 @@ export const useUI = create<UIState>()(
 /* ---------------------------------- Data ---------------------------------- */
 
 async function json<T>(res: Response): Promise<T> {
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    // Prefer the API's own { error } message; fall back to raw text, and never
+    // surface a whole HTML error page as the message.
+    const raw = await res.text();
+    let message = raw;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed?.error) message = parsed.error;
+    } catch {
+      if (raw.trimStart().startsWith("<")) message = `Server error (${res.status})`;
+    }
+    throw new Error(message || `Request failed (${res.status})`);
+  }
   return res.json();
+}
+
+/** Turn a fetch/API failure into something a user can act on. */
+export function describeError(err: unknown): string {
+  // fetch() rejects with a TypeError when the server can't be reached at all.
+  if (err instanceof TypeError) {
+    return "Can't reach the server — is the app still running? (npm run dev)";
+  }
+  return err instanceof Error && err.message ? err.message : "Something went wrong.";
 }
 
 interface DataState {
