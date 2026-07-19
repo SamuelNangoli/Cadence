@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Lock } from "lucide-react";
 import { Button, Input } from "@/components/ui";
@@ -43,9 +44,14 @@ export function LoginForm() {
     <main className="flex min-h-dvh items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center text-center">
-          <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--accent)] text-lg font-bold text-white">
-            C
-          </span>
+          <Image
+            src="/logo-mark.png"
+            alt="Cadence"
+            width={44}
+            height={44}
+            className="mb-3 rounded-xl"
+            priority
+          />
           <h1 className="text-lg font-bold tracking-tight">Cadence</h1>
           <p className="mt-1 text-sm text-[var(--muted)]">One board for every client.</p>
         </div>
