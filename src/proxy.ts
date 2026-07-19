@@ -15,7 +15,12 @@ function isPublic(pathname: string): boolean {
     pathname === "/api/login" ||
     // Client review links + the API they read/write through.
     pathname.startsWith("/share/") ||
-    pathname.startsWith("/api/share/")
+    pathname.startsWith("/api/share/") ||
+    // Install metadata. iOS and Android fetch these before any session exists;
+    // gating them serves an HTML login page where JSON is expected and the
+    // "add to home screen" icon silently falls back to a screenshot.
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/manifest.json"
   );
 }
 

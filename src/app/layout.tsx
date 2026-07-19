@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -9,6 +9,18 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: "Cadence — one board for every client",
   description: "Plan, approve, and publish every client's month from one board.",
+  applicationName: "Cadence",
+  appleWebApp: {
+    // Name shown under the icon when added to an iOS home screen.
+    title: "Cadence",
+    capable: true,
+    statusBarStyle: "black-translucent",
+  },
+};
+
+/** Colours the browser/OS chrome around the app. */
+export const viewport: Viewport = {
+  themeColor: "#0A192C",
 };
 
 // Apply the saved theme before first paint to avoid a flash.
