@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   Lightbulb,
   List,
+  LogOut,
   Menu,
   Moon,
   PanelLeftClose,
@@ -359,6 +360,16 @@ export function Board() {
         <Button size="sm" variant="primary" onClick={() => ui.set({ composer: { open: true } })}>
           <Plus size={13} /> <span className="max-sm:hidden">New post</span>
         </Button>
+        <button
+          onClick={async () => {
+            await fetch("/api/login", { method: "DELETE" });
+            window.location.href = "/login";
+          }}
+          title="Sign out"
+          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)]"
+        >
+          <LogOut size={14} />
+        </button>
       </header>
 
       <div className="flex min-h-0 flex-1">

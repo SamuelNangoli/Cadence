@@ -102,6 +102,12 @@ export const useUI = create<UIState>()(
 /* ---------------------------------- Data ---------------------------------- */
 
 async function json<T>(res: Response): Promise<T> {
+  // Session expired mid-session — send them back to sign in rather than
+  // surfacing a confusing error on every subsequent action.
+  if (res.status === 401 && typeof window !== "undefined") {
+    window.location.href = `/login?next=${encodeURIComponent(location.pathname)}`;
+    throw new Error("Session expired.");
+  }
   if (!res.ok) {
     // Prefer the API's own { error } message; fall back to raw text, and never
     // surface a whole HTML error page as the message.
