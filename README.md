@@ -37,21 +37,37 @@ See [docs/ABOUT.md](docs/ABOUT.md) for the full rationale.
 
 ## Tech
 
-Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Prisma · dnd-kit · Zustand
+Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Prisma · Supabase Postgres ·
+dnd-kit · Zustand
 
 Multi-tenant workspace → brand → post data model. Publishing and AI sit behind service
 interfaces (`src/lib/services/`) so real integrations drop in without reshaping the app.
 
 ## Getting started
 
+Cadence uses **Supabase Postgres**. You'll need a Supabase project (the free tier is
+plenty).
+
 ```bash
 npm install
 cp .env.example .env
+```
 
-# create the local SQLite database and seed 5 realistic client brands
-npx prisma db push
-npx tsx prisma/seed.ts
+Fill in `.env` with your two connection strings from
+**Supabase → Project Settings → Database → Connection string → URI**:
 
+| Variable | Which string | Port | Used for |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | Transaction pooler | `6543` | the app at runtime |
+| `DIRECT_URL` | Direct connection | `5432` | migrations & seeding |
+
+> If your database password contains `@ : / ? # & %`, URL-encode it (`@` → `%40`)
+> or the connection string won't parse.
+
+Then create the tables and load sample data:
+
+```bash
+npm run db:setup   # prisma db push + seed 5 realistic client brands
 npm run dev
 ```
 
@@ -60,11 +76,16 @@ Open [http://localhost:3000](http://localhost:3000).
 Try a client approval link at `/share/bloom-review-jul` — this is what your client sees,
 no login required.
 
-### Using Postgres / Supabase instead
+Useful extras:
 
-Change `provider` in [`prisma/schema.prisma`](prisma/schema.prisma) from `sqlite` to
-`postgresql` and point `DATABASE_URL` at your instance. The schema is written to be
-portable across both.
+```bash
+npm run db:push     # apply schema changes only
+npm run db:seed     # re-seed sample data (wipes existing rows)
+npm run db:studio   # browse the data in Prisma Studio
+```
+
+> **Note:** `db:seed` clears existing workspaces before inserting, so don't run it
+> against a database holding real client data.
 
 ## Documentation
 

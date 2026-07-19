@@ -1,15 +1,19 @@
 // Cadence data model — multi-tenant workspace/brand structure.
-// Local dev uses SQLite (no Docker on this machine); switch provider to
-// "postgresql" + a Supabase DATABASE_URL for production. Status/platform
-// enums are strings so the schema is portable across both providers.
+// Backed by Supabase Postgres. Status/platform values are stored as strings
+// rather than native enums, which keeps migrations simple as we add channels.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  // Pooled connection (Supabase Supavisor, port 6543) — used by the app at
+  // runtime so serverless/edge invocations don't exhaust Postgres connections.
+  url       = env("DATABASE_URL")
+  // Direct connection (port 5432) — Prisma uses this for migrations and
+  // introspection, which can't run through a transaction pooler.
+  directUrl = env("DIRECT_URL")
 }
 
 model Workspace {
