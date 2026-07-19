@@ -10,6 +10,11 @@ the way you'd actually use the app.
 
 ## 1. Getting oriented
 
+### Signing in
+Cadence is protected by a shared **workspace password**. Enter it once and you stay
+signed in on that device for 7 days; sign out with the exit icon at the far right of
+the top bar. Clients never sign in — see [Section 9](#9-the-client-approval-flow).
+
 When you open Cadence you land on **the board** — your calendar. Three regions:
 
 | Region | What it's for |

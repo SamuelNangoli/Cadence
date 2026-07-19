@@ -73,8 +73,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Try a client approval link at `/share/bloom-review-jul` — this is what your client sees,
-no login required.
+Sign in with `APP_PASSWORD`. Each client gets a private approval link automatically —
+copy it from **manage → Copy approval link** to see the client-facing review page,
+which needs no login.
 
 Useful extras:
 
@@ -91,7 +92,8 @@ npm run db:studio   # browse the data in Prisma Studio
 
 | Doc | What it covers |
 | --- | --- |
-| [docs/USER-GUIDE.md](docs/USER-GUIDE.md) | Step-by-step guide to every feature |
+| [docs/Cadence-Getting-Started.pdf](docs/Cadence-Getting-Started.pdf) | **Customer-facing** onboarding guide with worked examples — hand this to users. Rebuild with `python scripts/build-guide-pdf.py` |
+| [docs/USER-GUIDE.md](docs/USER-GUIDE.md) | Step-by-step reference for every feature |
 | [docs/ABOUT.md](docs/ABOUT.md) | The problem, the target user, and how Cadence helps |
 | [docs/DESCRIPTION.md](docs/DESCRIPTION.md) | Short-form copy for listings and landing pages |
 
