@@ -240,10 +240,15 @@ export const useData = create<DataState>()((set, get) => ({
   },
 
   createBrand: async (input) => {
-    const brand = await json<BrandDTO>(
+    const brand = await json<BrandDTO & { shareLinks?: ShareLinkDTO[] }>(
       await fetch("/api/brands", { method: "POST", body: JSON.stringify(input) })
     );
-    set({ brands: [...get().brands, brand] });
+    // Surface the auto-created approval link right away so the new client's
+    // "Copy approval link" button works without a reload.
+    set({
+      brands: [...get().brands, brand],
+      shareLinks: [...get().shareLinks, ...(brand.shareLinks ?? [])],
+    });
     return brand;
   },
 

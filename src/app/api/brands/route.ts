@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { newShareToken } from "@/lib/share-token";
 
 export async function POST(req: Request) {
   try {
@@ -43,8 +44,11 @@ export async function POST(req: Request) {
             connected: true,
           })),
         },
+        // Every client gets an approval link up front — otherwise there is no
+        // way to send them their content for review.
+        shareLinks: { create: { token: newShareToken() } },
       },
-      include: { channels: true },
+      include: { channels: true, shareLinks: true },
     });
 
     return NextResponse.json(brand, { status: 201 });
