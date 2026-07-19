@@ -4,7 +4,12 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const workspace = await prisma.workspace.findFirstOrThrow();
+  // A database with no workspace is a legitimate state — a fresh install, or
+  // after clearing every client. Create one instead of 500ing, so the app can
+  // render its "add your first client" empty state.
+  const workspace =
+    (await prisma.workspace.findFirst()) ??
+    (await prisma.workspace.create({ data: { name: "My Workspace" } }));
   const [brands, posts, slots, shareLinks] = await Promise.all([
     prisma.brand.findMany({
       where: { workspaceId: workspace.id },
