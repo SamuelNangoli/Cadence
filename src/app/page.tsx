@@ -56,10 +56,10 @@ function Nav() {
             Sign in
           </Link>
           <Link
-            href="/app"
+            href="/register"
             className="rounded-lg bg-gradient-to-r from-[#08C8DC] to-[#1691D3] px-4 py-2 text-sm font-semibold text-[#06263a] transition-opacity hover:opacity-90"
           >
-            Open Cadence
+            Create account
           </Link>
         </div>
       </nav>
@@ -97,10 +97,10 @@ function Hero() {
 
         <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
-            href="/app"
+            href="/register"
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#08C8DC] to-[#1691D3] px-6 py-3.5 text-[15px] font-semibold text-[#06263a] transition-opacity hover:opacity-90"
           >
-            Open Cadence <ArrowRight size={17} />
+            Create account <ArrowRight size={17} />
           </Link>
           <a
             href="#how"
@@ -109,6 +109,12 @@ function Hero() {
             See how it works
           </a>
         </div>
+        <p className="mt-4 text-[13px] text-slate-400">
+          Already invited?{" "}
+          <Link href="/login" className="font-medium text-[#08C8DC] hover:underline">
+            Sign in
+          </Link>
+        </p>
       </div>
 
       <div className="mx-auto max-w-5xl px-5 pb-20">
@@ -419,11 +425,17 @@ function FinalCta() {
             Plan every client’s month, get it approved, and keep the whole roster on one board.
           </p>
           <Link
-            href="/app"
+            href="/register"
             className="mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#08C8DC] to-[#1691D3] px-7 py-3.5 text-[15px] font-semibold text-[#06263a] transition-opacity hover:opacity-90"
           >
-            Open Cadence <ArrowRight size={17} />
+            Create account <ArrowRight size={17} />
           </Link>
+          <p className="mt-4 text-[13px] text-slate-400">
+            Already invited?{" "}
+            <Link href="/login" className="font-medium text-[#08C8DC] hover:underline">
+              Sign in
+            </Link>
+          </p>
         </div>
       </div>
     </section>
