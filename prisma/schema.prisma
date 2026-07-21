@@ -21,6 +21,22 @@ model Workspace {
   name      String
   createdAt DateTime @default(now())
   brands    Brand[]
+  users     User[]
+}
+
+// One account per social media manager / agency. Each user owns a workspace,
+// and all data access is scoped to that workspace — accounts never see each
+// other's clients.
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  workspaceId  String
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+
+  @@index([workspaceId])
 }
 
 model Brand {

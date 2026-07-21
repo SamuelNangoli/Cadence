@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { AUTH_COOKIE, verifyToken } from "@/lib/auth";
+import { AUTH_COOKIE, verifySession } from "@/lib/auth";
 
 /**
  * Password gate. Everything manager-facing requires a session; the client
@@ -15,6 +15,9 @@ function isPublic(pathname: string): boolean {
     pathname === "/" ||
     pathname === "/login" ||
     pathname === "/api/login" ||
+    // Account creation must be reachable before a session exists.
+    pathname === "/register" ||
+    pathname === "/api/register" ||
     // Client review links + the API they read/write through.
     pathname.startsWith("/share/") ||
     pathname.startsWith("/api/share/") ||
@@ -31,8 +34,8 @@ export async function proxy(request: NextRequest) {
 
   if (isPublic(pathname)) return NextResponse.next();
 
-  const authed = await verifyToken(request.cookies.get(AUTH_COOKIE)?.value);
-  if (authed) return NextResponse.next();
+  const session = await verifySession(request.cookies.get(AUTH_COOKIE)?.value);
+  if (session) return NextResponse.next();
 
   // Unauthenticated API calls get a 401 rather than an HTML redirect, so the
   // client sees a usable error instead of parsing a login page as JSON.

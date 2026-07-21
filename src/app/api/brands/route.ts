@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { newShareToken } from "@/lib/share-token";
+import { requireSession } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
+    const session = await requireSession();
+    if (session instanceof NextResponse) return session;
+
     const body = await req.json();
 
     const name = typeof body.name === "string" ? body.name.trim() : "";
@@ -18,12 +22,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Pick at least one channel." }, { status: 400 });
     }
 
-    // A fresh database (schema pushed but not seeded) has no workspace yet.
-    // Create one rather than failing, so adding a first client always works.
-    const workspace =
-      (await prisma.workspace.findFirst()) ??
-      (await prisma.workspace.create({ data: { name: "My Workspace" } }));
-
     const handle =
       typeof body.handle === "string" && body.handle.trim()
         ? body.handle.trim()
@@ -31,7 +29,7 @@ export async function POST(req: Request) {
 
     const brand = await prisma.brand.create({
       data: {
-        workspaceId: workspace.id,
+        workspaceId: session.wid,
         name,
         handle,
         industry: typeof body.industry === "string" ? body.industry : "",

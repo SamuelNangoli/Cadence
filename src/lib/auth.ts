@@ -1,28 +1,37 @@
 /**
- * Password gate for the manager-facing app.
+ * Session tokens for the multi-tenant app.
  *
- * The session cookie is an HMAC-signed expiry stamp, so it cannot be forged
- * without the secret — a plain "loggedIn=true" cookie would be trivially
- * spoofable. Uses Web Crypto so it works under either runtime.
+ * A token is a signed payload carrying the user id and their workspace id, so
+ * every request knows which account it belongs to. Signed with AUTH_SECRET via
+ * Web Crypto, so this module is safe to import from the proxy (any runtime).
  *
- * Note: client approval links (/share/...) are intentionally NOT gated —
- * clients approve content without an account, by design.
+ * Password hashing lives in ./password (Node crypto) and is imported only by
+ * the login/register API routes.
  */
 
 export const AUTH_COOKIE = "cadence_session";
 
-/** How long a login lasts before the user has to re-enter the password. */
-const SESSION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const SESSION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+export const SESSION_MAX_AGE_SECONDS = SESSION_MS / 1000;
+
+export interface Session {
+  uid: string; // user id
+  wid: string; // workspace id
+}
 
 function secret(): string {
-  const s = process.env.APP_PASSWORD;
-  if (!s) throw new Error("APP_PASSWORD is not set");
+  const s = process.env.AUTH_SECRET;
+  if (!s) throw new Error("AUTH_SECRET is not set");
   return s;
 }
 
-function b64url(bytes: ArrayBuffer): string {
-  const bin = String.fromCharCode(...new Uint8Array(bytes));
-  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+function b64urlEncode(s: string): string {
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function b64urlDecode(s: string): string {
+  const pad = s.length % 4 ? "=".repeat(4 - (s.length % 4)) : "";
+  return atob(s.replace(/-/g, "+").replace(/_/g, "/") + pad);
 }
 
 async function sign(payload: string): Promise<string> {
@@ -34,10 +43,9 @@ async function sign(payload: string): Promise<string> {
     ["sign"]
   );
   const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
-  return b64url(sig);
+  return b64urlEncode(String.fromCharCode(...new Uint8Array(sig)));
 }
 
-/** Length-independent comparison, to avoid leaking equality via timing. */
 function safeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;
@@ -45,36 +53,35 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** Verify a submitted password against APP_PASSWORD. */
-export function checkPassword(submitted: string): boolean {
-  const expected = process.env.APP_PASSWORD;
-  if (!expected) return false;
-  return safeEqual(submitted, expected);
+/** Mint a signed session token for a user + workspace. */
+export async function createToken(session: Session): Promise<string> {
+  const body = b64urlEncode(JSON.stringify({ ...session, exp: Date.now() + SESSION_MS }));
+  return `${body}.${await sign(body)}`;
 }
 
-/** Mint a signed session token that expires on its own. */
-export async function createToken(): Promise<string> {
-  const exp = String(Date.now() + SESSION_MS);
-  return `${exp}.${await sign(exp)}`;
-}
-
-/** True only for a well-formed, unexpired, correctly-signed token. */
-export async function verifyToken(token: string | undefined): Promise<boolean> {
-  if (!token) return false;
+/** Return the session for a valid, unexpired, correctly-signed token, else null. */
+export async function verifySession(token: string | undefined): Promise<Session | null> {
+  if (!token) return null;
   const dot = token.lastIndexOf(".");
-  if (dot < 1) return false;
+  if (dot < 1) return null;
 
-  const exp = token.slice(0, dot);
+  const body = token.slice(0, dot);
   const sig = token.slice(dot + 1);
 
-  const expiresAt = Number(exp);
-  if (!Number.isFinite(expiresAt) || Date.now() > expiresAt) return false;
+  let expected: string;
+  try {
+    expected = await sign(body);
+  } catch {
+    return null;
+  }
+  if (!safeEqual(sig, expected)) return null;
 
   try {
-    return safeEqual(sig, await sign(exp));
+    const data = JSON.parse(b64urlDecode(body));
+    if (typeof data.exp !== "number" || Date.now() > data.exp) return null;
+    if (typeof data.uid !== "string" || typeof data.wid !== "string") return null;
+    return { uid: data.uid, wid: data.wid };
   } catch {
-    return false;
+    return null;
   }
 }
-
-export const SESSION_MAX_AGE_SECONDS = SESSION_MS / 1000;

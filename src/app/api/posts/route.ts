@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { brandInWorkspace, notFound, requireSession } from "@/lib/session";
 
 export async function POST(req: Request) {
+  const session = await requireSession();
+  if (session instanceof NextResponse) return session;
+
   const body = await req.json();
+  // The post's brand must belong to the caller's workspace.
+  if (!body.brandId || !(await brandInWorkspace(body.brandId, session.wid))) return notFound();
+
   const post = await prisma.post.create({
     data: {
       brandId: body.brandId,

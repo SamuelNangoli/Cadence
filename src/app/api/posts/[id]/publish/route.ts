@@ -2,16 +2,21 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getPublisher } from "@/lib/services/publishing";
 import type { Platform } from "@/lib/platforms";
+import { notFound, requireSession } from "@/lib/session";
 
 type Params = { params: Promise<{ id: string }> };
 
 /** "Publish now" — runs every channel variant through the publishing provider. */
 export async function POST(_req: Request, { params }: Params) {
+  const session = await requireSession();
+  if (session instanceof NextResponse) return session;
+
   const { id } = await params;
-  const post = await prisma.post.findUniqueOrThrow({
-    where: { id },
+  const post = await prisma.post.findFirst({
+    where: { id, brand: { workspaceId: session.wid } },
     include: { variants: true, brand: { include: { channels: true } } },
   });
+  if (!post) return notFound();
 
   const publisher = getPublisher();
   const results = [];

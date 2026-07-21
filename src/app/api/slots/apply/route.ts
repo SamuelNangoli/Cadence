@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { brandInWorkspace, notFound, requireSession } from "@/lib/session";
 
 /**
  * Materialize a brand's recurring slots into draft posts for the next N weeks.
  * Skips slots that already have a post at that exact date/time for the brand.
  */
 export async function POST(req: Request) {
+  const session = await requireSession();
+  if (session instanceof NextResponse) return session;
+
   const { brandId, weeks } = await req.json();
+  if (!brandId || !(await brandInWorkspace(brandId, session.wid))) return notFound();
+
   const slots = await prisma.recurringSlot.findMany({ where: { brandId } });
   const horizon = Math.min(Number(weeks) || 2, 8);
 
