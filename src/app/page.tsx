@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { PricingCards } from "@/components/PricingCards";
 import {
   ArrowRight,
   CalendarDays,
@@ -51,6 +52,9 @@ function Nav() {
           </a>
           <a href="#features" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-white sm:block">
             Features
+          </a>
+          <a href="#pricing" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-white sm:block">
+            Pricing
           </a>
           <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-white">
             Sign in
@@ -407,6 +411,28 @@ function Features() {
   );
 }
 
+function Pricing() {
+  return (
+    <section id="pricing" className="scroll-mt-16 border-t border-white/5 bg-white/[0.015] py-20">
+      <div className="mx-auto max-w-5xl px-5">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Simple pricing</h2>
+          <p className="mt-3 text-[15px] leading-relaxed text-slate-300">
+            Priced per workspace, not per seat. Start free, upgrade as you take on more clients.
+          </p>
+        </div>
+        <div className="mt-10">
+          <PricingCards variant="landing" ctaLabel="Get started" />
+        </div>
+        <p className="mx-auto mt-6 max-w-2xl text-center text-[13px] text-slate-500">
+          Prices shown in USD and UGX — switch above. Every plan includes the full board, client
+          approval links, and all calendar views.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function FinalCta() {
   return (
     <section className="px-5 py-20">
@@ -466,6 +492,7 @@ export default function LandingPage() {
       <VsCalendar />
       <HowItWorks />
       <Features />
+      <Pricing />
       <FinalCta />
       <Footer />
     </main>

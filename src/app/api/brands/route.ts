@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { newShareToken } from "@/lib/share-token";
 import { requireSession } from "@/lib/session";
-import { planFor } from "@/lib/plans";
 
 export async function POST(req: Request) {
   try {
@@ -16,21 +15,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "A client name is required." }, { status: 400 });
     }
 
-    // Enforce the plan's client limit.
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: session.wid },
-      select: { plan: true, _count: { select: { brands: true } } },
-    });
-    const plan = planFor(workspace?.plan);
-    if (workspace && workspace._count.brands >= plan.clientLimit) {
-      return NextResponse.json(
-        {
-          error: `Your ${plan.name} plan includes ${plan.clientLimit} client${plan.clientLimit === 1 ? "" : "s"}. Upgrade to add more.`,
-          code: "plan_limit",
-        },
-        { status: 402 }
-      );
-    }
+    // Note: plan client-limits are display-only until a payment processor is
+    // wired up (Stripe isn't available in Uganda), so creation isn't capped.
 
     const platforms: string[] = Array.isArray(body.platforms)
       ? [...new Set(body.platforms.filter((p: unknown) => typeof p === "string"))] as string[]

@@ -35,7 +35,6 @@ export async function GET() {
       id: workspace.id,
       name: workspace.name,
       plan: workspace.plan,
-      subscriptionStatus: workspace.subscriptionStatus,
     },
     brands,
     posts,

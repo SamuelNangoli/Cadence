@@ -64,7 +64,7 @@ export interface ShareLinkDTO {
 }
 
 export interface BootstrapDTO {
-  workspace: { id: string; name: string; plan?: string; subscriptionStatus?: string | null };
+  workspace: { id: string; name: string; plan?: string };
   brands: BrandDTO[];
   posts: PostDTO[];
   slots: SlotDTO[];

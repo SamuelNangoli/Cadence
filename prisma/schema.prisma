@@ -23,13 +23,9 @@ model Workspace {
   brands    Brand[]
   users     User[]
 
-  // Billing (Stripe). plan is the source of truth for feature limits; the
-  // Stripe ids let us reconcile with subscription webhooks.
-  plan                 String    @default("free") // free | freelancer | agency | studio
-  stripeCustomerId     String?   @unique
-  stripeSubscriptionId String?
-  subscriptionStatus   String? // active | trialing | past_due | canceled | ...
-  currentPeriodEnd     DateTime?
+  // Current plan (display/limits). Paid upgrades aren't self-serve yet — no
+  // payment processor is wired up (Stripe isn't available in Uganda).
+  plan String @default("free") // free | freelancer | agency | studio
 }
 
 // Fixed-window rate limiter backed by Postgres, so it works across serverless
