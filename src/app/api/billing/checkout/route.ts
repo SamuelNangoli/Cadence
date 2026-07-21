@@ -40,16 +40,22 @@ export async function POST(req: Request) {
     await prisma.workspace.update({ where: { id: workspace.id }, data: { stripeCustomerId: customerId } });
   }
 
-  const checkout = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl()}/billing?status=success`,
-    cancel_url: `${appUrl()}/billing?status=cancelled`,
-    // So the webhook can attribute the subscription even if the customer id race-lags.
-    subscription_data: { metadata: { workspaceId: workspace.id } },
-    allow_promotion_codes: true,
-  });
-
-  return NextResponse.json({ url: checkout.url });
+  try {
+    const checkout = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${appUrl()}/billing?status=success`,
+      cancel_url: `${appUrl()}/billing?status=cancelled`,
+      // So the webhook can attribute the subscription even if the customer id race-lags.
+      subscription_data: { metadata: { workspaceId: workspace.id } },
+      allow_promotion_codes: true,
+    });
+    return NextResponse.json({ url: checkout.url });
+  } catch (err) {
+    // Surface Stripe's own message (e.g. "set a business name") instead of a bare 500.
+    const message = err instanceof Error ? err.message : "Checkout failed.";
+    console.error("[billing/checkout]", message);
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
 }

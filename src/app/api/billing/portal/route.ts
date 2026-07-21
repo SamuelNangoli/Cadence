@@ -18,10 +18,15 @@ export async function POST() {
     return NextResponse.json({ error: "No billing account yet — subscribe to a plan first." }, { status: 400 });
   }
 
-  const portal = await stripe.billingPortal.sessions.create({
-    customer: workspace.stripeCustomerId,
-    return_url: `${appUrl()}/billing`,
-  });
-
-  return NextResponse.json({ url: portal.url });
+  try {
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: workspace.stripeCustomerId,
+      return_url: `${appUrl()}/billing`,
+    });
+    return NextResponse.json({ url: portal.url });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Couldn't open the billing portal.";
+    console.error("[billing/portal]", message);
+    return NextResponse.json({ error: message }, { status: 502 });
+  }
 }
