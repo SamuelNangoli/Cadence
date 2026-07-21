@@ -11,6 +11,8 @@ import { AUTH_COOKIE, verifyToken } from "@/lib/auth";
 /** Paths that must remain reachable without logging in. */
 function isPublic(pathname: string): boolean {
   return (
+    // Public marketing landing page.
+    pathname === "/" ||
     pathname === "/login" ||
     pathname === "/api/login" ||
     // Client review links + the API they read/write through.

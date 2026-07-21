@@ -363,7 +363,7 @@ export function Board() {
         <button
           onClick={async () => {
             await fetch("/api/login", { method: "DELETE" });
-            window.location.href = "/login";
+            window.location.href = "/"; // back to the public landing page
           }}
           title="Sign out"
           className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)]"

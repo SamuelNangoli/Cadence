@@ -8,7 +8,7 @@ import { Button, Input } from "@/components/ui";
 
 export function LoginForm() {
   const params = useSearchParams();
-  const next = params.get("next") || "/";
+  const next = params.get("next") || "/app";
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
