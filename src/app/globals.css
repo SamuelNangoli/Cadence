@@ -34,9 +34,21 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* min-height, not height: a fixed 100% clamps the document to the viewport and
+   breaks normal window scrolling on long pages (e.g. the landing page), which
+   in turn breaks anchor + smooth scroll. The app's own layouts use dvh units,
+   so they don't depend on this. */
 html,
 body {
-  height: 100%;
+  min-height: 100%;
+}
+
+/* Smooth-scroll anchor navigation (landing nav links). Must live on the scroll
+   container itself — html — not on an inner element. Respect reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -66,3 +78,17 @@ body {
   to { transform: translateX(0); opacity: 1; }
 }
 .slide-in { animation: slide-in 0.2s ease-out; }
+
+/* Bottom sheet (mobile filters): slide up from below with an easing that
+   decelerates naturally, like a native sheet. */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.slide-up { animation: slide-up 0.32s cubic-bezier(0.32, 0.72, 0, 1); }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fade-in { animation: fade-in 0.25s ease-out; }

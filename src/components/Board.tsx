@@ -391,12 +391,13 @@ export function Board() {
         {/* mobile bottom sheet */}
         {ui.mobileRailOpen && (
           <div className="fixed inset-0 z-40 md:hidden" onClick={() => ui.set({ mobileRailOpen: false })}>
-            <div className="absolute inset-0 bg-black/40" />
+            <div className="fade-in absolute inset-0 bg-black/40" />
             <div
-              className="fade-up absolute inset-x-0 bottom-0 max-h-[75vh] rounded-t-2xl border-t border-[var(--border)] bg-[var(--panel)] pb-4"
+              className="slide-up absolute inset-x-0 bottom-0 max-h-[75vh] rounded-t-2xl border-t border-[var(--border)] bg-[var(--panel)] pb-4 will-change-transform"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between px-4 pt-3">
+              <div className="mx-auto mt-2 h-1 w-9 rounded-full bg-[var(--border)]" />
+              <div className="flex items-center justify-between px-4 pt-2">
                 <span className="text-sm font-semibold">Filters</span>
                 <button onClick={() => ui.set({ mobileRailOpen: false })} className="cursor-pointer rounded-md p-1 hover:bg-[var(--panel2)]">
                   <X size={16} />

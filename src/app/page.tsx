@@ -486,7 +486,7 @@ function Footer() {
 
 export default function LandingPage() {
   return (
-    <main className="min-h-dvh scroll-smooth bg-[#0A192C] font-sans text-white antialiased">
+    <main className="min-h-dvh bg-[#0A192C] font-sans text-white antialiased">
       <Nav />
       <Hero />
       <VsCalendar />
