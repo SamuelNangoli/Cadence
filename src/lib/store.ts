@@ -136,7 +136,7 @@ export function describeError(err: unknown): string {
 interface DataState {
   loaded: boolean;
   error: string | null;
-  workspace: { id: string; name: string } | null;
+  workspace: { id: string; name: string; plan?: string; subscriptionStatus?: string | null } | null;
   brands: BrandDTO[];
   posts: PostDTO[];
   slots: SlotDTO[];

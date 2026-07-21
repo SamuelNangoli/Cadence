@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   Lightbulb,
   List,
+  CreditCard,
   LogOut,
   Menu,
   Moon,
@@ -360,6 +361,13 @@ export function Board() {
         <Button size="sm" variant="primary" onClick={() => ui.set({ composer: { open: true } })}>
           <Plus size={13} /> <span className="max-sm:hidden">New post</span>
         </Button>
+        <a
+          href="/billing"
+          title="Plans & billing"
+          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)]"
+        >
+          <CreditCard size={14} />
+        </a>
         <button
           onClick={async () => {
             await fetch("/api/login", { method: "DELETE" });

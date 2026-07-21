@@ -31,7 +31,12 @@ export async function GET() {
   ]);
 
   return NextResponse.json({
-    workspace: { id: workspace.id, name: workspace.name },
+    workspace: {
+      id: workspace.id,
+      name: workspace.name,
+      plan: workspace.plan,
+      subscriptionStatus: workspace.subscriptionStatus,
+    },
     brands,
     posts,
     slots,
