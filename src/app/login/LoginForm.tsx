@@ -9,7 +9,11 @@ type Mode = "signin" | "signup";
 
 export function LoginForm({ initialMode = "signin" }: { initialMode?: Mode }) {
   const params = useSearchParams();
-  const next = params.get("next") || "/app";
+  // Only allow same-site relative redirects — never an absolute or
+  // protocol-relative URL, which would let ?next=https://evil.com send a
+  // just-authenticated user off-site (open redirect / phishing).
+  const rawNext = params.get("next") || "";
+  const next = /^\/(?![/\\])/.test(rawNext) ? rawNext : "/app";
 
   const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState("");
