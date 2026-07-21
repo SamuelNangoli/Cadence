@@ -22,6 +22,24 @@ model Workspace {
   createdAt DateTime @default(now())
   brands    Brand[]
   users     User[]
+
+  // Billing (Stripe). plan is the source of truth for feature limits; the
+  // Stripe ids let us reconcile with subscription webhooks.
+  plan                 String    @default("free") // free | freelancer | agency | studio
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?
+  subscriptionStatus   String? // active | trialing | past_due | canceled | ...
+  currentPeriodEnd     DateTime?
+}
+
+// Fixed-window rate limiter backed by Postgres, so it works across serverless
+// invocations without an extra service. One row per (action, key, window).
+model RateLimit {
+  bucket    String   @id // "<action>:<key>:<windowIndex>"
+  count     Int      @default(0)
+  expiresAt DateTime
+
+  @@index([expiresAt])
 }
 
 // One account per social media manager / agency. Each user owns a workspace,

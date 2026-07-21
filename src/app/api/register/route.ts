@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { AUTH_COOKIE, SESSION_MAX_AGE_SECONDS, createToken } from "@/lib/auth";
+import { clientIp, rateLimit, tooMany } from "@/lib/rate-limit";
 
 /**
  * Create an account. Gated by an invite code so strangers can't sign up on a
@@ -15,6 +16,10 @@ export async function POST(req: Request) {
   if (!process.env.INVITE_CODE) {
     return NextResponse.json({ error: "Signups are not enabled on this server." }, { status: 500 });
   }
+
+  // Throttle invite-code guessing and signup abuse: 5 attempts per hour per IP.
+  const rl = await rateLimit("register", clientIp(req), 5, 60 * 60 * 1000);
+  if (!rl.ok) return tooMany(rl.retryAfterSeconds);
 
   let body: { email?: string; password?: string; name?: string; inviteCode?: string };
   try {

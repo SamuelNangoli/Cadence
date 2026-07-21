@@ -2,12 +2,17 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
 import { AUTH_COOKIE, SESSION_MAX_AGE_SECONDS, createToken } from "@/lib/auth";
+import { clientIp, rateLimit, tooMany } from "@/lib/rate-limit";
 
 /** Sign in with email + password, exchanging them for a signed session cookie. */
 export async function POST(req: Request) {
   if (!process.env.AUTH_SECRET) {
     return NextResponse.json({ error: "AUTH_SECRET is not configured on the server." }, { status: 500 });
   }
+
+  // Throttle password guessing: 10 attempts per 10 minutes per IP.
+  const rl = await rateLimit("login", clientIp(req), 10, 10 * 60 * 1000);
+  if (!rl.ok) return tooMany(rl.retryAfterSeconds);
 
   let body: { email?: string; password?: string };
   try {

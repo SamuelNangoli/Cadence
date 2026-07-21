@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { clientIp, rateLimit, tooMany } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ token: string }> };
 
@@ -9,6 +10,12 @@ type Params = { params: Promise<{ token: string }> };
  */
 export async function POST(req: Request, { params }: Params) {
   const { token } = await params;
+
+  // This route is public (clients act without an account), so throttle it:
+  // 40 actions per 10 minutes per IP.
+  const rl = await rateLimit("share-decision", clientIp(req), 40, 10 * 60 * 1000);
+  if (!rl.ok) return tooMany(rl.retryAfterSeconds);
+
   const link = await prisma.shareLink.findUnique({ where: { token } });
   if (!link) return NextResponse.json({ error: "not found" }, { status: 404 });
 
