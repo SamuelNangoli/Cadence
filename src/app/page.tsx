@@ -1,6 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { AUTH_COOKIE, verifySession } from "@/lib/auth";
 import { PricingCards } from "@/components/PricingCards";
 import {
   ArrowRight,
@@ -484,7 +487,13 @@ function Footer() {
   );
 }
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // Already signed in? Skip the marketing page and go straight to the board —
+  // so reopening the app (or tapping the home-screen icon) stays in the account
+  // instead of dropping back here.
+  const token = (await cookies()).get(AUTH_COOKIE)?.value;
+  if (await verifySession(token)) redirect("/app");
+
   return (
     <main className="min-h-dvh bg-[#0A192C] font-sans text-white antialiased">
       <Nav />

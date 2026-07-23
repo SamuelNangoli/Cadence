@@ -6,7 +6,9 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Cadence — one board for every client",
     short_name: "Cadence",
     description: "Plan, approve, and publish every client's month from one board.",
-    start_url: "/",
+    // Open the installed app straight into the board. If not signed in, /app
+    // redirects to login; if signed in, it's the board.
+    start_url: "/app",
     display: "standalone",
     background_color: "#0A192C",
     theme_color: "#0A192C",
