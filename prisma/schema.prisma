@@ -50,6 +50,11 @@ model User {
   workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdAt    DateTime  @default(now())
 
+  // Password reset: we store only the SHA-256 of the emailed token, so a
+  // database leak can't be replayed as a reset link.
+  resetTokenHash    String?   @unique
+  resetTokenExpires DateTime?
+
   @@index([workspaceId])
 }
 

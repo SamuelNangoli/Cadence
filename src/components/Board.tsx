@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { addDays, addMonths, addWeeks, format } from "date-fns";
 import {
   CalendarDays,
@@ -13,6 +13,7 @@ import {
   BarChart3,
   CreditCard,
   LogOut,
+  MoreVertical,
   Menu,
   Moon,
   PanelLeftClose,
@@ -172,9 +173,31 @@ function Rail({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+async function signOut() {
+  await fetch("/api/login", { method: "DELETE" });
+  window.location.href = "/"; // back to the public landing page
+}
+
+/** A row inside the mobile overflow menu — link or action. */
+function MenuItem({ icon, label, href, onClick }: { icon: React.ReactNode; label: string; href?: string; onClick?: () => void }) {
+  const cls = "flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] text-[var(--text)] hover:bg-[var(--panel2)]";
+  const inner = (
+    <>
+      <span className="text-[var(--muted)]">{icon}</span>
+      {label}
+    </>
+  );
+  return href ? (
+    <a href={href} className={cls}>{inner}</a>
+  ) : (
+    <button type="button" onClick={onClick} className={cn(cls, "cursor-pointer")}>{inner}</button>
+  );
+}
+
 export function Board() {
   const data = useData();
   const ui = useUI();
+  const [menuOpen, setMenuOpen] = useState(false);
   // false during SSR / first paint, true once mounted on the client — lets the
   // persisted UI store settle before we render view preferences.
   const hydrated = useSyncExternalStore(
@@ -352,7 +375,7 @@ export function Board() {
         <button
           onClick={() => ui.set({ theme: ui.theme === "dark" ? "light" : "dark" })}
           title="Toggle theme"
-          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)]"
+          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)] max-sm:hidden"
         >
           {ui.theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
         </button>
@@ -362,30 +385,58 @@ export function Board() {
         <Button size="sm" variant="primary" onClick={() => ui.set({ composer: { open: true } })}>
           <Plus size={13} /> <span className="max-sm:hidden">New post</span>
         </Button>
+
+        {/* Desktop: individual icons. On phones they overflowed the topbar, so
+            they collapse into the ⋯ menu below instead. */}
         <a
           href="/dashboard"
           title="Dashboard"
-          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)]"
+          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)] max-sm:hidden"
         >
           <BarChart3 size={14} />
         </a>
         <a
           href="/billing"
           title="Plans & billing"
-          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)]"
+          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)] max-sm:hidden"
         >
           <CreditCard size={14} />
         </a>
         <button
-          onClick={async () => {
-            await fetch("/api/login", { method: "DELETE" });
-            window.location.href = "/"; // back to the public landing page
-          }}
+          onClick={signOut}
           title="Sign out"
-          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)]"
+          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)] max-sm:hidden"
         >
           <LogOut size={14} />
         </button>
+
+        {/* Mobile overflow menu */}
+        <div className="relative sm:hidden">
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="More"
+            className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)]"
+          >
+            <MoreVertical size={16} />
+          </button>
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+              <div className="fade-up absolute right-0 top-9 z-50 w-48 rounded-xl border border-[var(--border)] bg-[var(--panel)] py-1 shadow-lg">
+                <MenuItem icon={<Lightbulb size={14} />} label="Ideas" onClick={() => { setMenuOpen(false); ui.set({ ideasOpen: true }); }} />
+                <MenuItem icon={<BarChart3 size={14} />} label="Dashboard" href="/dashboard" />
+                <MenuItem icon={<CreditCard size={14} />} label="Plans & billing" href="/billing" />
+                <MenuItem
+                  icon={ui.theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+                  label={ui.theme === "dark" ? "Light mode" : "Dark mode"}
+                  onClick={() => { setMenuOpen(false); ui.set({ theme: ui.theme === "dark" ? "light" : "dark" }); }}
+                />
+                <div className="my-1 border-t border-[var(--border)]" />
+                <MenuItem icon={<LogOut size={14} />} label="Sign out" onClick={signOut} />
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
       <div className="flex min-h-0 flex-1">

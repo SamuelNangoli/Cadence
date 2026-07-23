@@ -3,7 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Button, Input } from "@/components/ui";
+import { PasswordInput } from "@/components/PasswordInput";
 
 type Mode = "signin" | "signup";
 
@@ -100,8 +102,7 @@ export function LoginForm({ initialMode = "signin" }: { initialMode?: Mode }) {
           </Field>
 
           <Field label="Password">
-            <Input
-              type="password"
+            <PasswordInput
               autoComplete={isSignup ? "new-password" : "current-password"}
               value={password}
               onChange={(e) => {
@@ -111,6 +112,14 @@ export function LoginForm({ initialMode = "signin" }: { initialMode?: Mode }) {
               placeholder={isSignup ? "At least 8 characters" : "Enter your password"}
             />
           </Field>
+
+          {!isSignup && (
+            <div className="-mt-1 text-right">
+              <Link href="/forgot-password" className="text-[12px] font-medium text-[var(--accent)] hover:underline">
+                Forgot password?
+              </Link>
+            </div>
+          )}
 
           {isSignup && (
             <Field label="Invite code">

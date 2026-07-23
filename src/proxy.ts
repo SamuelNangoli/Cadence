@@ -18,6 +18,11 @@ function isPublic(pathname: string): boolean {
     // Account creation must be reachable before a session exists.
     pathname === "/register" ||
     pathname === "/api/register" ||
+    // Password reset — used precisely when you can't sign in.
+    pathname === "/forgot-password" ||
+    pathname === "/api/forgot-password" ||
+    pathname === "/reset-password" ||
+    pathname === "/api/reset-password" ||
     // Client review links + the API they read/write through.
     pathname.startsWith("/share/") ||
     pathname.startsWith("/api/share/") ||
