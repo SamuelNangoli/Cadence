@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   Lightbulb,
   List,
+  BarChart3,
   CreditCard,
   LogOut,
   Menu,
@@ -361,6 +362,13 @@ export function Board() {
         <Button size="sm" variant="primary" onClick={() => ui.set({ composer: { open: true } })}>
           <Plus size={13} /> <span className="max-sm:hidden">New post</span>
         </Button>
+        <a
+          href="/dashboard"
+          title="Dashboard"
+          className="cursor-pointer rounded-md p-1.5 text-[var(--muted)] hover:bg-[var(--panel2)]"
+        >
+          <BarChart3 size={14} />
+        </a>
         <a
           href="/billing"
           title="Plans & billing"
